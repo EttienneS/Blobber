@@ -10,50 +10,6 @@ namespace Blobber
 {
     internal class Program
     {
-        [STAThread]
-        private static void Main(string[] args)
-        {
-            var files = GetFiles(args);
-            var blobServiceClient = GetBlobService();
-            var containerName = GetContainerName();
-
-            BlobContainerClient containerClient;
-            if (!blobServiceClient.GetBlobContainers().Any(c => c.Name == containerName))
-            {
-                containerClient = blobServiceClient.CreateBlobContainer(containerName, PublicAccessType.Blob).Value;
-            }
-            else
-            {
-                containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-            }
-
-            var links = new Dictionary<string, string>();
-            foreach (var file in files)
-            {
-                // Get a reference to a blob
-                var blobClient = containerClient.GetBlobClient(Path.GetFileName(file));
-
-                Console.WriteLine($"Uploading '{file}' to Blob storage");
-                links.Add(file, blobClient.Uri.ToString());
-
-                // Open the file and upload its data
-                using (FileStream uploadFileStream = File.OpenRead(file))
-                {
-                    var result = blobClient.Upload(uploadFileStream, true).Value;
-                    Console.WriteLine("Done!");
-                }
-            }
-
-            Console.WriteLine("All uploads complete:\n");
-            foreach (var kvp in links)
-            {
-                Console.WriteLine($"{Path.GetFileName(kvp.Key)}: {kvp.Value}");
-            }
-
-            Console.WriteLine("\nPress any key to exit.");
-            Console.ReadKey();
-        }
-
         private const string ConVar = "AZURE_STORAGE_CONNECTION_STRING";
 
         private static BlobServiceClient GetBlobService()
@@ -112,6 +68,50 @@ namespace Blobber
             }
 
             return fileDialog.FileNames.ToList();
+        }
+
+        [STAThread]
+        private static void Main(string[] args)
+        {
+            var files = GetFiles(args);
+            var blobServiceClient = GetBlobService();
+            var containerName = GetContainerName();
+
+            BlobContainerClient containerClient;
+            if (!blobServiceClient.GetBlobContainers().Any(c => c.Name == containerName))
+            {
+                containerClient = blobServiceClient.CreateBlobContainer(containerName, PublicAccessType.Blob).Value;
+            }
+            else
+            {
+                containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+            }
+
+            var links = new Dictionary<string, string>();
+            foreach (var file in files)
+            {
+                // Get a reference to a blob
+                var blobClient = containerClient.GetBlobClient(Path.GetFileName(file));
+
+                Console.WriteLine($"Uploading '{file}' to Blob storage");
+                links.Add(file, blobClient.Uri.ToString());
+
+                // Open the file and upload its data
+                using (FileStream uploadFileStream = File.OpenRead(file))
+                {
+                    var result = blobClient.Upload(uploadFileStream, true).Value;
+                    Console.WriteLine("Done!");
+                }
+            }
+
+            Console.WriteLine("All uploads complete:\n");
+            foreach (var kvp in links)
+            {
+                Console.WriteLine($"{Path.GetFileName(kvp.Key)}: {kvp.Value}");
+            }
+
+            Console.WriteLine("\nPress any key to exit.");
+            Console.ReadKey();
         }
     }
 }
