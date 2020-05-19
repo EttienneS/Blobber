@@ -58,11 +58,11 @@ namespace Blobber
 
         private static BlobServiceClient GetBlobService()
         {
-            var conn = Environment.GetEnvironmentVariable(ConVar);
+            var conn = Environment.GetEnvironmentVariable(ConVar, EnvironmentVariableTarget.User);
 
             if (string.IsNullOrWhiteSpace(conn))
             {
-                Console.Write("Enter a azure storage account connection string (NOTE: This will get sved as an environment variable!):");
+                Console.Write("Enter a azure storage account connection string (NOTE: This will be saved as an environment variable!):");
                 var input = Console.ReadLine();
                 if (!string.IsNullOrWhiteSpace(input))
                 {
@@ -70,15 +70,14 @@ namespace Blobber
                     Console.WriteLine($"Test: {testClient.AccountName}");
                     Console.WriteLine("Connection valid!");
                     conn = input;
-                    Environment.SetEnvironmentVariable(ConVar, conn);
+                    Environment.SetEnvironmentVariable(ConVar, conn, EnvironmentVariableTarget.User);
                 }
                 else
                 {
                     throw new Exception("No connection string given!");
                 }
             }
-            var blobServiceClient = new BlobServiceClient(conn);
-            return blobServiceClient;
+            return new BlobServiceClient(conn);
         }
 
         private static string GetContainerName()
